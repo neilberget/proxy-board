@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <table class="table table-bordered table-striped table-hover">
+    <tr>
+      <th>Method / Location</th>
+      <th>Status</th>
+      <th>Request Duration</th>
+      <th>Response Length</th>
+      <th>Request Time</th>
+    </tr>
+  <% requests.forEach(function(request) { %>
+    <tr>
+      <td><a href="/request/<%= request.id %>"><%= request.method %> <%= request.url %></a></td>
+      <td><%= request.response_status %></td>
+      <td><%= request.request_time_ms %>ms</td>
+      <td><%= request.response_length_bytes %></td>
+      <td><%= request.created_at %></td>
+    </tr>
+  <% }); %>
+  </table>
+</div>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io.connect('http://localhost:3001');
+socket.on('news', function (data) {
+    console.log(data);
+    socket.emit('my other event', { my: 'data' });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="/assets/stylesheets/proxy-board.css">
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <h2>
+    <small><%= request.method %></small> 
+    <%= request.url %>
+    <% 
+      var label = "label-primary";
+      if (request.response_status.match(/^4/)) {
+        label = "label-warning";
+      } else if (request.response_status.match(/^5/)) {
+        label = "label-danger";
+      }
+        
+    %>
+    <span class="label <%= label %>"><%= request.response_status %></span>
+    <small><%= request.request_time_ms %>ms</small>
+  </h2>
+  <h3>
+  </h3>
+
+  <ul class="nav nav-pills">
+    <li class="active"><a href="#request" data-toggle="tab">Request</a></li>
+    <li><a href="#response" data-toggle="tab">Response</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane active" id="request">
+      <h4 data-toggle="collapse" data-target="#request-header">
+        <span class="glyphicon glyphicon-th-list"></span>
+        Request Headers
+      </h4>
+      <div id="request-header" class="collapse">
+        <table class='table table-bordered table-condensed'>
+        <% reqHeaders = JSON.parse(request.request_headers); 
+           for (var key in reqHeaders) { %>
+          <tr>
+            <th><%= key %></th>
+            <td><%= reqHeaders[key] %></td>
+          </tr>
+        <% } %>
+        </table>
+      </div>
+
+      <h4 data-toggle="collapse" data-target="#request-body">
+        <span class="glyphicon glyphicon-file"></span>
+        Request Body
+      </h4>
+      <div id="request-body" class="collapse in">
+        <% if (request.request_body.length > 0) { %>
+        <%= request.request_body %>
+        <% } else { %>
+        <p class="text-muted">None</p>
+        <% } %>
+      </div>
+
+    </div>
+
+    <div class="tab-pane" id="response">
+      <h4 data-toggle="collapse" data-target="#response-headers">
+        <span class="glyphicon glyphicon-th-list"></span>
+        Response Headers
+      </h4>
+      <div id="response-headers" class="collapse">
+        <table class='table table-bordered table-condensed'>
+        <% resHeaders = JSON.parse(request.response_headers); 
+           for (var key in resHeaders) { %>
+          <tr>
+            <th><%= key %></th>
+            <td><%= resHeaders[key] %></td>
+          </tr>
+        <% } %>
+        </table>
+      </div>
+
+      <h4 data-toggle="collapse" data-target="#response-body">
+        <span class="glyphicon glyphicon-file"></span>
+        Response Body
+      </h4>
+      <div id="response-body" class="collapse in">
+        <% if (request.response_body.length > 0) { %>
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#response-preview" data-toggle="tab">Preview</a></li>
+            <li><a href="#response-raw" data-toggle="tab">Raw</a></li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="response-preview">
+              <iframe src="/response_body/<%= request.id %>" height="400"></iframe>
+            </div>
+            <div class="tab-pane" id="response-raw">
+              <pre><%= request.response_body %></pre>
+            </div>
+          </div>
+        <% } else { %>
+          <p class="text-muted">None</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
