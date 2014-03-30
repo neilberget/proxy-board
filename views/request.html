@@ -3,8 +3,10 @@
 <head>
 <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 <link rel="stylesheet" href="/assets/stylesheets/proxy-board.css">
+<link rel="stylesheet" href="/assets/stylesheets/github.css">
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script src="/assets/javascripts/vkbeautify.0.99.00.beta.js"></script>
 </head>
 <body>
 
@@ -40,11 +42,10 @@
       </h4>
       <div id="request-header" class="collapse">
         <table class='table table-bordered table-condensed'>
-        <% reqHeaders = JSON.parse(request.request_headers); 
-           for (var key in reqHeaders) { %>
+        <% for (var key in request.request_headers) { %>
           <tr>
             <th><%= key %></th>
-            <td><%= reqHeaders[key] %></td>
+            <td><%= request.request_headers[key] %></td>
           </tr>
         <% } %>
         </table>
@@ -56,7 +57,19 @@
       </h4>
       <div id="request-body" class="collapse in">
         <% if (request.request_body.length > 0) { %>
-        <%= request.request_body %>
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#request-preview" data-toggle="tab">Preview</a></li>
+            <li><a href="#request-raw" data-toggle="tab">Raw</a></li>
+          </ul>
+
+          <div class="tab-content body-container">
+            <div class="tab-pane active" id="request-preview">
+              <pre class="pre-scrollable"><%- request.request_body_beautified %></pre>
+            </div>
+            <div class="tab-pane" id="request-raw">
+              <pre><%= request.request_body %></pre>
+            </div>
+          </div>
         <% } else { %>
         <p class="text-muted">None</p>
         <% } %>
@@ -71,11 +84,10 @@
       </h4>
       <div id="response-headers" class="collapse">
         <table class='table table-bordered table-condensed'>
-        <% resHeaders = JSON.parse(request.response_headers); 
-           for (var key in resHeaders) { %>
+        <% for (var key in request.response_headers) { %>
           <tr>
             <th><%= key %></th>
-            <td><%= resHeaders[key] %></td>
+            <td><%= request.response_headers[key] %></td>
           </tr>
         <% } %>
         </table>
@@ -92,9 +104,21 @@
             <li><a href="#response-raw" data-toggle="tab">Raw</a></li>
           </ul>
 
-          <div class="tab-content">
+          <div class="tab-content body-container">
             <div class="tab-pane active" id="response-preview">
-              <iframe src="/response_body/<%= request.id %>" height="400"></iframe>
+              <% 
+                var isHTML = request.response_headers["content-type"].match(/text\/html/);
+                var isJSON = request.response_headers["content-type"].match(/application\/json/);
+                if (isHTML) {
+              %>
+                <iframe src="/response_body/<%= request.id %>" height="400"></iframe>
+              <%
+                } else if (isJSON) {
+              %>
+                <pre class="pre-scrollable"><%- request.response_body_beautified %></pre>
+              <%
+                }
+              %>
             </div>
             <div class="tab-pane" id="response-raw">
               <pre><%= request.response_body %></pre>

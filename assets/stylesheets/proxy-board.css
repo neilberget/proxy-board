@@ -2,6 +2,31 @@
   cursor: pointer;
 }
 
+.body-container {
+  margin-top: 12px;
+}
+
+#requests-list {
+  list-style-type: none;
+}
+#requests-list li {
+  border-bottom: 1px solid #ccc;
+  padding: 12px 0;
+}
+#requests-list .response-status {
+  font-size: 16px;
+}
+#requests-list .request-url {
+  color: #333;
+}
+
+table {
+  table-layout: fixed;
+}
+td {
+  overflow: hidden;
+}
+
 iframe {
   border: none;
   width: 100%;

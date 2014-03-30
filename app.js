@@ -1,11 +1,16 @@
 var express = require('express');
 var request = require('request')
 var mysql = require('mysql');
+var beautify = require('js-beautify').js_beautify;
+var hljs = require('highlight.js');
 
 var app = express();
+var proxy_app = express();
 
 var config = {
-  proxy_to: "http://localhost:3000"
+  //proxy_to: "http://localhost:3000"
+  proxy_to: "https://appsapi.edmodoqa.com",
+  host: "appsapi.edmodoqa.com"
 };
 
 var db = mysql.createConnection({
@@ -31,7 +36,7 @@ var allowedHeaders = [
 ];
 
 var proxy = function(target, req, res) {
-  var path = req.path.substr(6);
+  var path = req.path;
   console.log("PROXY to " + target + path);
 
   res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
@@ -41,12 +46,26 @@ var proxy = function(target, req, res) {
   // x-proxy-host
 
   targetUrl = target + path;
+
+  var headers = {};
+  for (var i in req.headers) {
+    var h = i.replace(/^[a-z]|-[a-z]/g, function (a) {
+      return a.toUpperCase();
+    });
+    headers[h] = req.headers[i];
+
+    if (h == "Host") {
+      headers[h] = config.host;
+    }
+  }
+
   var options = {
     url: targetUrl,
     method: req.method,
     qs: req.query,
-    headers: req.headers,
-    body: ""
+    headers: headers,
+    body: "",
+    rejectUnauthorized: false
   };
   req.on("data", function(data) {
     console.log("BODY: " + data);
@@ -54,7 +73,13 @@ var proxy = function(target, req, res) {
   });
   req.on("end", function() {
     var startTime = new Date().getTime();
+    //console.log("OPTIONS:");
+    //console.log(options);
     request(options, function(err, response, body) {
+      if (err) {
+        console.log("ERROR: " + err);
+        return;
+      }
       var totalTime = new Date().getTime() - startTime;
       for (var key in response.headers) {
         res.setHeader(key, response.headers[key]);
@@ -63,10 +88,10 @@ var proxy = function(target, req, res) {
       res.end(body);
 
       // save request details
-      var request = {
+      var request_data = {
         method: req.method,
-        url:    target + req.url.substr(6), //targetUrl,
-        request_headers: JSON.stringify(req.headers), // !!
+        url:    target + req.url, //targetUrl,
+        request_headers: JSON.stringify(headers), // !!
         request_body: options.body,       // !!
         response_status: response.statusCode,
         response_headers: JSON.stringify(response.headers),
@@ -74,8 +99,10 @@ var proxy = function(target, req, res) {
         request_time_ms: totalTime,
         response_length_bytes: body.length
       };
+      console.log("DB INSERT:");
+      console.log(request_data);
   
-      db.query("INSERT INTO requests SET ?", request, function(err, result) {
+      db.query("INSERT INTO requests SET ?", request_data, function(err, result) {
         if (err) {
           console.log(err);
         }
@@ -86,28 +113,28 @@ var proxy = function(target, req, res) {
 
 var proxyMiddleware = function(target) {
   return function(req, res, next) {
-    if(req.url.match(new RegExp('^\/proxy\/'))) {
-      if (req.method == "OPTIONS") {
-        res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-        res.setHeader("Access-Control-Allow-Headers", allowedHeaders.join(", "));
-        res.setHeader("Access-Control-Allow-Credentials", "true");
-        res.end();
-      } else {
-        //proxyReq = req
-        //proxyReq.url = proxyReq.url.substr(6)
-        proxy(target, req, res);
-      }
+    console.log("proxy");
+    if (req.method == "OPTIONS") {
+      res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+      res.setHeader("Access-Control-Allow-Headers", allowedHeaders.join(", "));
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.end();
     } else {
-      next();
+      //proxyReq = req
+      //proxyReq.url = proxyReq.url.substr(6)
+      proxy(target, req, res);
     }
   }
 }
 
 app.configure(function() {
-  app.use(proxyMiddleware(config.proxy_to));
   app.use(express.bodyParser());
   app.use(express.errorHandler());
   app.use('/assets', express.static(__dirname + '/assets'));
+});
+
+proxy_app.configure(function() {
+  proxy_app.use(proxyMiddleware(config.proxy_to));
 });
 
 app.engine('html', require('ejs').renderFile);
@@ -120,7 +147,12 @@ app.get('/', function(req, res) {
 
 app.get('/request/:id', function(req, res) {
   db.query('SELECT * FROM requests WHERE id=?', req.params.id, function(err, results) {
-    res.render('request.html', { request: results[0] });
+    var request = results[0]
+    request.request_headers = JSON.parse(request.request_headers);
+    request.request_body_beautified = hljs.highlightAuto(beautify(request.request_body, { indent_size: 2 })).value;
+    request.response_body_beautified = hljs.highlightAuto(beautify(request.response_body, { indent_size: 2 })).value;
+    request.response_headers = JSON.parse(request.response_headers);
+    res.render('request.html', { request: request });
   });
 });
 
@@ -132,6 +164,10 @@ app.get('/response_body/:id', function(req, res) {
 
 var server = app.listen(3001, function() {
   console.log("Listening on port %d", server.address().port);
+});
+
+var proxy_server = proxy_app.listen(3002, function() {
+  console.log("Proxy listening on port %d", proxy_server.address().port);
 });
 
 // var io = require('socket.io').listen(server);

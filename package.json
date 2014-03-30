@@ -8,6 +8,8 @@
     "socket.io": "*",
     "ejs": "*",
     "request": "*",
-    "mysql": "*"
+    "mysql": "*",
+    "js-beautify": "*",
+    "highlight.js": "*"
   }
 }
