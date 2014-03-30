@@ -140,8 +140,14 @@ proxy_app.configure(function() {
 app.engine('html', require('ejs').renderFile);
 
 app.get('/', function(req, res) {
-  db.query('SELECT * FROM requests ORDER BY id DESC', function(err, results) {
-    res.render('index.html', { requests: results });
+  db.query('SELECT * FROM proxies ORDER BY id DESC', function(err, results) {
+    res.render('index.html', { proxies: results });
+  });
+});
+
+app.get('/proxy/:id', function(req, res) {
+  db.query('SELECT * FROM requests WHERE proxy_id=? ORDER BY id DESC', req.params.id, function(err, results) {
+    res.render('proxy.html', { requests: results });
   });
 });
 
