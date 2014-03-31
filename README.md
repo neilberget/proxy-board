@@ -10,3 +10,12 @@ Edit the config.proxy_to setting in app.js
 Go to http://localhost:3001 to see your dashboard
 
 Any requests routed through http://localhost:3002/ will be recorded.
+
+# Unit Testing
+
+Setting up
+    npm install jasmine-node -g
+    npm install coffee-script -g
+
+running unit test
+    jasmine-node --coffee spec/
