@@ -166,7 +166,7 @@ app.get('/request/:id', function(req, res) {
   }).success(function(results) {
     var request = results[0]
     request.request_headers = JSON.parse(request.request_headers);
-    request.request_body_beautified = hljs.highlightAuto(beautify(request.request_body, { indent_size: 2 })).value;
+    request.request_body_beautified = hljs.highlightAuto(beautify(decodeURIComponent(request.request_body), { indent_size: 2 })).value;
     request.response_body_beautified = hljs.highlightAuto(beautify(request.response_body, { indent_size: 2 })).value;
     request.response_headers = JSON.parse(request.response_headers);
     res.render('request.html', { request: request });
