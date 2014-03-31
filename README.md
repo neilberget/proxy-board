@@ -14,8 +14,12 @@ Any requests routed through http://localhost:3002/ will be recorded.
 # Unit Testing
 
 Setting up
+
     npm install jasmine-node -g
     npm install coffee-script -g
 
+Create `proxy_board_test`
+
 running unit test
+
     jasmine-node --coffee spec/
