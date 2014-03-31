@@ -25,7 +25,7 @@ var dbSystem = new Sequelize(
     define: {
       underscored: true
     },
-    logging: false
+    logging: false    
   }
 );
 
