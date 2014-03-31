@@ -24,7 +24,8 @@ var dbSystem = new Sequelize(
     dialect: 'mysql',
     define: {
       underscored: true
-    }
+    },
+    logging: false
   }
 );
 
