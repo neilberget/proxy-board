@@ -1,7 +1,7 @@
 var config = {
   //proxy_to: "http://localhost:3000"
   test: {
-    proxy_to: "https://appsapi.edmodoqa.com",
+    proxy_to: "https://appsapi.edmodoqa.com/v1",
     host: "appsapi.edmodoqa.com",
     database: {
       host     : '127.0.0.1',
@@ -11,7 +11,7 @@ var config = {
     }
   },
   development: {
-    proxy_to: "https://appsapi.edmodoqa.com",
+    proxy_to: "https://appsapi.edmodoqa.com/v1",
     host: "appsapi.edmodoqa.com",
     database: {
       host     : '127.0.0.1',

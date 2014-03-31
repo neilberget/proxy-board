@@ -32,14 +32,6 @@ ProxyModel    = dbSystem.define('proxies', proxiesSchema);
 RequestModel  = dbSystem.define('requests', requestSchema);
 dbSystem.sync();
 
-// var db = mysql.createConnection(config.database);
-
-// db.connect(function(err) {
-//   if (err) {
-//     console.log("DB connect failed")
-//   }
-// });
-
 var allowedHeaders = [
 	"Authorization",
 	"Content-Type",
@@ -80,13 +72,10 @@ var proxy = function(target, req, res) {
     rejectUnauthorized: false
   };
   req.on("data", function(data) {
-    console.log("BODY: " + data);
     options.body += data;
   });
   req.on("end", function() {
     var startTime = new Date().getTime();
-    //console.log("OPTIONS:");
-    //console.log(options);
     request(options, function(err, response, body) {
       if (err) {
         console.log("ERROR: " + err);
@@ -111,8 +100,6 @@ var proxy = function(target, req, res) {
         request_time_ms: totalTime,
         response_length_bytes: body.length
       };
-      console.log("DB INSERT:");
-      console.log(request_data);
 
       RequestModel.create(request_data).success(function() {
         console.log("Request successfully captured");
@@ -121,28 +108,18 @@ var proxy = function(target, req, res) {
         console.log(err);
 
       });
-
-      // db.query("INSERT INTO requests SET ?", request_data, function(err, result) {
-      //   if (err) {
-      //     console.log(err);
-      //   }
-      // });
-
     });
   });
 };
 
 var proxyMiddleware = function(target) {
   return function(req, res, next) {
-    console.log("proxy");
     if (req.method == "OPTIONS") {
       res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
       res.setHeader("Access-Control-Allow-Headers", allowedHeaders.join(", "));
       res.setHeader("Access-Control-Allow-Credentials", "true");
       res.end();
     } else {
-      //proxyReq = req
-      //proxyReq.url = proxyReq.url.substr(6)
       proxy(target, req, res);
     }
   }
@@ -166,10 +143,6 @@ app.get('/', function(req, res) {
     res.render('index.html', { proxies: results });
   });
 
-  // db.query('SELECT * FROM proxies ORDER BY id DESC', function(err, results) {
-  //   res.render('index.html', { proxies: results });
-  // });
-
 });
 
 app.get('/proxy/:id', function(req, res) {
@@ -182,10 +155,6 @@ app.get('/proxy/:id', function(req, res) {
     res.render('proxy.html', { requests: results });
 
   });
-
-  // db.query('SELECT * FROM requests WHERE proxy_id=? ORDER BY id DESC', req.params.id, function(err, results) {
-  //   res.render('proxy.html', { requests: results });
-  // });
 });
 
 app.get('/request/:id', function(req, res) {
@@ -202,16 +171,6 @@ app.get('/request/:id', function(req, res) {
     res.render('request.html', { request: request });
     
   });
-
-  // db.query('SELECT * FROM requests WHERE id=?', req.params.id, function(err, results) {
-  //   var request = results[0]
-  //   request.request_headers = JSON.parse(request.request_headers);
-  //   request.request_body_beautified = hljs.highlightAuto(beautify(request.request_body, { indent_size: 2 })).value;
-  //   request.response_body_beautified = hljs.highlightAuto(beautify(request.response_body, { indent_size: 2 })).value;
-  //   request.response_headers = JSON.parse(request.response_headers);
-  //   res.render('request.html', { request: request });
-  // });
-
 });
 
 app.get('/response_body/:id', function(req, res) {
@@ -222,10 +181,6 @@ app.get('/response_body/:id', function(req, res) {
   }).success(function(results) {
     res.end(results[0].response_body);
   });
-
-  // db.query('SELECT * FROM requests WHERE id=?', req.params.id, function(err, results) {
-  //   res.end(results[0].response_body);
-  // });
 });
 
 
