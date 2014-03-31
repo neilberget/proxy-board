@@ -16,6 +16,9 @@
 #requests-list .response-status {
   font-size: 16px;
 }
+#requests-list h4 {
+  overflow: hidden;
+}
 #requests-list .request-url {
   color: #333;
 }
