@@ -1,5 +1,4 @@
 var express = require('express');
-var request = require('request')
 var mysql = require('mysql');
 var beautify = require('js-beautify').js_beautify;
 var hljs = require('highlight.js');
@@ -33,98 +32,20 @@ ProxyModel    = dbSystem.define('proxies', proxiesSchema);
 RequestModel  = dbSystem.define('requests', requestSchema);
 dbSystem.sync();
 
-var allowedHeaders = [
-	"Authorization",
-	"Content-Type",
-	"X-Requested-With",
-	"X-Proxy-Host"
-];
+var Proxy = require('./proxy');
+var proxy = new Proxy();
 
-var proxy = function(target, req, res) {
-  var path = req.path;
-  console.log("PROXY to " + target + path);
-
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-  res.setHeader("Access-Control-Allow-Headers", allowedHeaders.join(", "));
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-
-  // x-proxy-host
-
-  targetUrl = target + path;
-
-  var headers = {};
-  for (var i in req.headers) {
-    var h = i.replace(/^[a-z]|-[a-z]/g, function (a) {
-      return a.toUpperCase();
-    });
-    headers[h] = req.headers[i];
-
-    if (h == "Host") {
-      headers[h] = config.host;
-    }
-  }
-
-  var options = {
-    url: targetUrl,
-    method: req.method,
-    qs: req.query,
-    headers: headers,
-    body: "",
-    rejectUnauthorized: false
-  };
-  req.on("data", function(data) {
-    options.body += data;
+// proxy.on("request:before", function(requestOptions) {
+//   console.log("About to make request");
+// });
+proxy.on("request:complete", function(requestData) {
+  RequestModel.create(requestData).success(function() {
+    console.log("Request successfully captured");
+  }).error(function(err) {
+    console.log(err);
   });
-  req.on("end", function() {
-    var startTime = new Date().getTime();
-    request(options, function(err, response, body) {
-      if (err) {
-        console.log("ERROR: " + err);
-        return;
-      }
-      var totalTime = new Date().getTime() - startTime;
-      for (var key in response.headers) {
-        res.setHeader(key, response.headers[key]);
-      }
-      res.statusCode = response.statusCode;
-      res.end(body);
+});
 
-      // save request details
-      var request_data = {
-        method: req.method,
-        url:    target + req.url, //targetUrl,
-        request_headers: JSON.stringify(headers), // !!
-        request_body: options.body,       // !!
-        response_status: response.statusCode,
-        response_headers: JSON.stringify(response.headers),
-        response_body: body, // !!
-        request_time_ms: totalTime,
-        response_length_bytes: body.length
-      };
-
-      RequestModel.create(request_data).success(function() {
-        console.log("Request successfully captured");
-
-      }).error(function(err) {
-        console.log(err);
-
-      });
-    });
-  });
-};
-
-var proxyMiddleware = function(target) {
-  return function(req, res, next) {
-    if (req.method == "OPTIONS") {
-      res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-      res.setHeader("Access-Control-Allow-Headers", allowedHeaders.join(", "));
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-      res.end();
-    } else {
-      proxy(target, req, res);
-    }
-  }
-}
 
 app.configure(function() {
   app.use(express.bodyParser());
@@ -133,7 +54,7 @@ app.configure(function() {
 });
 
 proxy_app.configure(function() {
-  proxy_app.use(proxyMiddleware(config.proxy_to));
+  proxy_app.use(proxy.middleware(config.proxy_to));
 });
 
 app.engine('html', require('ejs').renderFile);
