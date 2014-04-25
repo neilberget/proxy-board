@@ -11,6 +11,6 @@
     "mysql": "*",
     "js-beautify": "*",
     "highlight.js": "*",
-    "sequelize": ""
+    "sequelize": "*"
   }
 }

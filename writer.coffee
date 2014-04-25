@@ -1,5 +1,3 @@
-Proxy = require("./proxy/proxy")
-
 module.exports = (model) ->
 
   pre: (req, next) ->
@@ -9,7 +7,6 @@ module.exports = (model) ->
   post: (transaction, res, next) ->
     @end = new Date().getTime()
 
-    console.log "Writing response"
     # save request details
     request_data =
       method: transaction.req.method

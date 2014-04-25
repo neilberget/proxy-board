@@ -11,15 +11,12 @@ var config = {
     }
   },
   development: {
-    proxy_to: "https://appsapi.edmodoqa.com/v1",
-    //proxy_to: "http://oneapi.edmodoqabranch.com",
-    //proxy_to: "http://localhost:3000",
-    host: "appsapi.edmodoqa.com",
+    proxy_to: process.env.PROXY_TO || "https://appsapi.edmodoqa.com/v1",
     database: {
-      host     : '127.0.0.1',
-      user     : 'root',
-      password : '',
-      database : 'proxy_board'
+      host     : process.env.DB_HOST     || '127.0.0.1',
+      user     : process.env.DB_USER     || 'root',
+      password : process.env.DB_PASSWORD || '',
+      database : process.env.DB_NAME     || 'proxy_board'
     }    
   }
 

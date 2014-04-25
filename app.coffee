@@ -10,7 +10,7 @@ app = express()
 proxy_app = express()
 
 # Setting up of the Database connections
-Sequelize = require("Sequelize")
+Sequelize = require("sequelize")
 proxiesSchema = require("./schema/proxiesSchema")
 requestSchema = require("./schema/requestSchema")
 
@@ -26,19 +26,18 @@ ProxyModel = dbSystem.define("proxies", proxiesSchema)
 RequestModel = dbSystem.define("requests", requestSchema)
 dbSystem.sync()
 
+chaosRules = [
+  { path: ".*test.*", failure_rate: "0.5" }
+]
+
 Proxy = require("./proxy/proxy")
 proxy = new Proxy
   middleware: [
-    require("./proxy/middleware/chaos")
+    require("./proxy/middleware/chaos")(chaosRules)
+    require("./proxy/middleware/x_proxy_host")
     require("./writer")(RequestModel)
   ]
 
-
-proxy.on "request:complete", (requestData) ->
-  RequestModel.create(requestData).success( ->
-    console.log "Request successfully captured"
-  ).error (err) ->
-    console.log err
 
 app.configure ->
   app.use express.bodyParser()

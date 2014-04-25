@@ -1,15 +1,29 @@
-Proxy = require("../proxy")
+# Chaos Middleware
+# Forces a 500 response a percentage of the time based on provided rules
+#
+# To use:
+# rules = [
+#   { path: ".*test.*", failure_rate: "0.5" }
+# ]
+# proxy = new Proxy
+#   middleware: [
+#     require("./proxy/middleware/chaos")(rules)
+#   ]
+# 
 
-Chaos =
+module.exports = (rules) ->
+
   pre: (req, next, stop) ->
-    console.log "CHAOS MODE!!!"
-    if @chaos()
+    if @chaos(req.url)
+      console.log "CHAOS MODE!!!"
       stop(500, 'Chaos..')
     else
       next()
 
-  chaos: ->
-    randNum = Math.random()
-    randNum < parseFloat("0.5")
+  chaos: (url) ->
+    for rule in rules
+      if url.match rule.path
+        randNum = Math.random()
+        return true if randNum < parseFloat(rule.failure_rate)
 
-module.exports = Chaos
+    false

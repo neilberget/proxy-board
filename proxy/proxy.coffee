@@ -55,8 +55,9 @@ class Transaction
   pre: (cb) ->
     if @options.middleware[@counter]
       if @options.middleware[@counter].pre?
-        next = =>
+        next = (@options=@options) =>
           @counter++
+          #@options = new_options
           @pre(cb)
 
         @options.middleware[@counter].pre @options, next, @stop_callback

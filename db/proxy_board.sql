@@ -11,6 +11,9 @@
 # ************************************************************
 
 
+CREATE DATABASE `proxy_board` DEFAULT CHARACTER SET utf8mb4;
+USE proxy_board;
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -28,11 +31,12 @@ CREATE TABLE `proxies` (
   `user_id` int(11) NOT NULL,
   `target` varchar(255) NOT NULL DEFAULT '',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
+INSERT INTO proxies (user_id, target) VALUES (1, "abc");
 
 # Dump of table requests
 # ------------------------------------------------------------
@@ -50,7 +54,7 @@ CREATE TABLE `requests` (
   `request_time_ms` int(11) NOT NULL,
   `response_length_bytes` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
