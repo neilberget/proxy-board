@@ -26,8 +26,17 @@ ProxyModel = dbSystem.define("proxies", proxiesSchema)
 RequestModel = dbSystem.define("requests", requestSchema)
 dbSystem.sync()
 
-Proxy = require("./proxy")
-proxy = new Proxy()
+Proxy = require("./proxy/proxy")
+proxy = new Proxy
+  middleware: [
+    require("./proxy/middleware/chaos")
+    require("./writer")(RequestModel)
+  ]
+
+
+# proxy.use "request:before", (options, halt) ->
+#   console.log ("Request Before")
+
 
 proxy.on "request:complete", (requestData) ->
   RequestModel.create(requestData).success( ->
@@ -41,7 +50,7 @@ app.configure ->
   app.use "/assets", express.static(__dirname + "/assets")
 
 proxy_app.configure ->
-  proxy_app.use proxy.middleware(config.proxy_to)
+  proxy_app.use proxy.express_middleware(config.proxy_to)
 
 app.engine "html", require("ejs").renderFile
 
