@@ -37,9 +37,10 @@ class Transaction
     @options.rejectUnauthorized = false
     @url = @options.url
     @req = options.req
+    @req.headers = options.headers
     @options.req.body = @options.body
 
-  perform: (@final_callback) ->
+  perform: (@final_callback, @stop_callback) ->
     @pre => @deliver()
 
   deliver: ->
@@ -47,7 +48,6 @@ class Transaction
       if err
         console.log "ERROR: " + err
         return
-      #totalTime = new Date().getTime() - startTime
 
       @res.body = @body
       @post(@final_callback)
@@ -55,9 +55,11 @@ class Transaction
   pre: (cb) ->
     if @options.middleware[@counter]
       if @options.middleware[@counter].pre?
-        @options.middleware[@counter].pre @options, =>
+        next = =>
           @counter++
           @pre(cb)
+
+        @options.middleware[@counter].pre @options, next, @stop_callback
       else
         @counter++
         @pre(cb)
@@ -79,7 +81,6 @@ class Transaction
 
 
 Proxy = (config) ->
-  _proxy = this
   EventEmitter.call @
 
   @express_middleware = (target) ->
@@ -114,6 +115,10 @@ Proxy = (config) ->
       res.statusCode = response.statusCode
       res.end body
 
+    stop = (status, body) ->
+      res.statusCode = status
+      res.end body
+
     req.on "data", (data) ->
       body += data
 
@@ -128,15 +133,11 @@ Proxy = (config) ->
         body:    body
         middleware: config.middleware
 
-      transaction.perform(final)
+      transaction.perform(final, stop)
       
     return
 
   return
-
-# Lifecycle events
-Proxy.BEFORE = "before"
-Proxy.AFTER  = "after"
 
 
 util.inherits Proxy, EventEmitter

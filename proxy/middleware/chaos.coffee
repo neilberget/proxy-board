@@ -1,20 +1,15 @@
 Proxy = require("../proxy")
 
 Chaos =
-  pre: (req, next) ->
+  pre: (req, next, stop) ->
     console.log "CHAOS MODE!!!"
-    next() unless @chaos()
-    # console.log("Chaos!")
-
-    # res.writeHead(500, {})
-    # res.end("Chaos mode...")
-
-    # true
+    if @chaos()
+      stop(500, 'Chaos..')
+    else
+      next()
 
   chaos: ->
-    false
-    # randNum = Math.random()
-    # 
-    # randNum < parseFloat("0.5")
+    randNum = Math.random()
+    randNum < parseFloat("0.5")
 
 module.exports = Chaos
