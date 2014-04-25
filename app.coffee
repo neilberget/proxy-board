@@ -34,10 +34,6 @@ proxy = new Proxy
   ]
 
 
-# proxy.use "request:before", (options, halt) ->
-#   console.log ("Request Before")
-
-
 proxy.on "request:complete", (requestData) ->
   RequestModel.create(requestData).success( ->
     console.log "Request successfully captured"

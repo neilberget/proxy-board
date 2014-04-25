@@ -102,24 +102,17 @@ Proxy = (config) ->
     res.setHeader "Access-Control-Allow-Headers", allowedHeaders.join(", ")
     res.setHeader "Access-Control-Allow-Credentials", "true"
     
+    # x-proxy-host (in middleware)
+    targetUrl = target + path
+    headers = prepareRequestHeaders(req.headers, host)
+    body = ""
+
     final = (response, body) ->
       for key of response.headers
         res.setHeader key, response.headers[key]
 
       res.statusCode = response.statusCode
       res.end body
-
-    # x-proxy-host
-    targetUrl = target + path
-    headers = prepareRequestHeaders(req.headers, host)
-    body = ""
-    # options =
-    #   url:                targetUrl
-    #   method:             req.method
-    #   qs:                 req.query
-    #   headers:            headers
-    #   body:               ""
-    #   rejectUnauthorized: false
 
     req.on "data", (data) ->
       body += data
@@ -135,11 +128,7 @@ Proxy = (config) ->
         body:    body
         middleware: config.middleware
 
-      # startTime = new Date().getTime()
-
-      # call pre-transform middlewares
       transaction.perform(final)
-      #pre_transform(options, makeRequest)
       
     return
 
