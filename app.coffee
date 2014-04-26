@@ -34,7 +34,7 @@ Proxy = require("./proxy/proxy")
 proxy = new Proxy
   middleware: [
     require("./proxy/middleware/chaos")(chaosRules)
-    require("./proxy/middleware/x_proxy_host")
+    # require("./proxy/middleware/x_proxy_host")
     require("./writer")(RequestModel)
   ]
 

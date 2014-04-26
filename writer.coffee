@@ -6,7 +6,6 @@ module.exports = (model) ->
 
   post: (transaction, res, next) ->
     @end = new Date().getTime()
-
     # save request details
     request_data =
       method: transaction.req.method

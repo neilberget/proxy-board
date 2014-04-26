@@ -96,7 +96,7 @@ Proxy = (config) ->
   
 
   process = (target, req, res) ->
-    path = req.path
+    path = req.url
     host = calculateHost(target)
     console.log "PROXY to " + target + path
 
