@@ -25,24 +25,13 @@
 </header>
 
 <div class="container">
-
-  <table id="proxies-list" class="table">
-    <thead>
-      <tr>
-        <th>Target</th>
-        <th>URL</th>
-      </tr>
-    </thead>
-    <tbody>
-    <% proxies.forEach(function(proxy) { %>
-      <tr>
-        <td><a href="/proxy/<%= proxy.id %>"><%= proxy.target %></a></td>
-        <td><a href="/proxy/<%= proxy.id %>">http://<%= proxy.secure_id %>.edmodo.io</a></td>
-      </tr>
-    <% }); %>
-    </tbody>
-  </table>
+  <form action='/proxy' method='post' role='form'>
+    <div class='form-group'>
+      <label for='target'>Proxy Target</label>
+      <input type='text' name='target' class='form-control' id='target' placeholder='Enter URL'/>
+    </div>
+    <button type='submit' class='btn btn-primary'>Create Proxy</button>
+  </form>
 </div>
 
 </body>
-</html>

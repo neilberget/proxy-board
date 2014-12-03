@@ -39,6 +39,7 @@ class Transaction
     @req = options.req
     @req.headers = options.headers
     @options.req.body = @options.body
+    @proxy_id = @options.proxy_id
 
   perform: (@final_callback, @stop_callback) ->
     @pre => @deliver()
@@ -84,18 +85,20 @@ class Transaction
 Proxy = (config) ->
   EventEmitter.call @
 
-  @express_middleware = (target) ->
-    (req, res, next) ->
+  @express_middleware = (target) =>
+    (req, res, next) =>
       if req.method is "OPTIONS"
         res.setHeader "Access-Control-Allow-Origin", req.headers.origin
         res.setHeader "Access-Control-Allow-Headers", allowedHeaders.join(", ")
         res.setHeader "Access-Control-Allow-Credentials", "true"
         res.end()
       else
-        process target, req, res
+        @process target, req, res
   
 
-  process = (target, req, res) ->
+  @process = (proxy, req, res) ->
+    console.log(proxy)
+    target = proxy.target
     path = req.url
     host = calculateHost(target)
     console.log "PROXY to " + target + path
@@ -124,7 +127,9 @@ Proxy = (config) ->
       body += data
 
     req.on "end", =>
+      console.log "starting transaction to " + targetUrl
       transaction = new Transaction
+        proxy_id: proxy.id
         req:     req
         res:     res
         url:     targetUrl

@@ -7,28 +7,24 @@
 </head>
 <body>
 
+<header class="navbar navbar-static-top" role="banner">
+  <div class="container">
+    <div class="navbar-header">
+      <a href="/" class="navbar-brand"><strong>Proxy</strong>Board</a>
+    </div>
+    <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+      <ul class="nav navbar-nav">
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a href="/proxy/new">Create New Proxy</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
 <div class="container">
-  <!--
-  <table class="table table-bordered table-striped table-hover">
-    <tr>
-      <th>Status</th>
-      <th>Request Duration</th>
-      <th>Response Length</th>
-      <th>Request Time</th>
-    </tr>
-  <% requests.forEach(function(request) { %>
-    <tr>
-      <td colspan="4"><a href="/request/<%= request.id %>"><%= request.method %> <%= request.url %></a></td>
-    </tr>
-    <tr>
-      <td><%= request.response_status %></td>
-      <td><%= request.request_time_ms %>ms</td>
-      <td><%= request.response_length_bytes %></td>
-      <td><%= request.created_at %></td>
-    </tr>
-  <% }); %>
-  </table>
-  -->
 
   <ul id="requests-list">
   <% requests.forEach(function(request) { %>
@@ -56,13 +52,15 @@
 </div>
 
 
+<!--
 <script src="/socket.io/socket.io.js"></script>
 <script>
 var socket = io.connect('http://localhost:3001');
 socket.on('news', function (data) {
-    console.log(data);
-    socket.emit('my other event', { my: 'data' });
-    });
+  console.log(data);
+  socket.emit('my other event', { my: 'data' });
+});
 </script>
 </body>
 </html>
+-->

@@ -1,0 +1,11 @@
+web:
+  build: .
+  links:
+   - db
+  ports:
+   - "3001:3001"
+   - "3002:3002"
+db:
+  image: mysql
+  environment:
+    MYSQL_ROOT_PASSWORD:

@@ -8,6 +8,7 @@
 
 #requests-list {
   list-style-type: none;
+  padding-left: 0;
 }
 #requests-list li {
   border-bottom: 1px solid #ccc;

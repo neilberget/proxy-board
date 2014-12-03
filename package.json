@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "dockerode": "*",
     "express": "3.x",
     "socket.io": "*",
     "ejs": "*",
