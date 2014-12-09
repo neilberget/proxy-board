@@ -4,12 +4,12 @@ beautify = require("js-beautify").js_beautify
 hljs     = require("highlight.js")
 Docker   = require('dockerode')
 docker = new Docker socketPath: '/var/run/docker.sock'
+moment = require('moment');
 
 # Instantiating of processes
 ENV = (process.env.NODE_ENV or "development").toLowerCase()
 config = require("./config/config")[ENV]
 app = express()
-proxy_app = express()
 
 # Setting up of the Database connections
 Sequelize = require("sequelize")
@@ -36,62 +36,12 @@ chaosRules = [
 ]
 
 Proxy = require("./proxy/proxy")
-proxy = new Proxy
-  middleware: [
-    # require("./proxy/middleware/chaos")(chaosRules)
-    # require("./proxy/middleware/x_proxy_host")
-    require("./proxy/middleware/no_gzip")
-    require("./writer")(RequestModel)
-  ]
 
-proxy_router = (req, res, next) ->
-  host = req.headers.host
-
-  if host.split('.').length == 3
-    subdomain = host.split('.')[0]
-    ProxyModel.find(
-      where:
-        secure_id: subdomain
-    ).success (proxy_row) ->
-      unless proxy_row
-        next()
-        return
-      console.log proxy
-      proxy.process(proxy_row, req, res)
-  else
-    next()
-
-app.configure ->
-  app.use express.json()
-  app.use express.urlencoded()
-  app.use express.errorHandler()
-  app.use "/assets", express.static(__dirname + "/assets")
-  app.use proxy_router
-
-proxy_app.configure ->
-  proxy_app.use proxy.express_middleware(config.proxy_to)
-
-startProxyContainer = (proxy) ->
-  vhost = "#{proxy.secure_id}.edmodo.io"
-  containerName = "proxyboard-#{proxy.secure_id}"
-  docker.getContainer(containerName).stop (err, data) ->
-    console.log(err) if err
-
-    docker.getContainer(containerName).remove (err, data) ->
-      console.log(err) if err
-
-      docker.run 'registry.edmodo.io/proxy-board', ['coffee', 'app.coffee'], null, {Env: "VIRTUAL_HOST=#{vhost}", Links:["mysql:mysql"], name: containerName}, (err, data, container) ->
-        console.log err
-      .on 'container', (container) ->
-        container.defaultOptions.start.Links = ["mysql:mysql"]
-
-
-initializeProxyContainers = ->
-  # Launch all proxies on app launch
-  ProxyModel.findAll(order: "id DESC").success (results) ->
-    results.forEach startProxyContainer
-
-initializeProxyContainers()
+app.use Proxy.router(ProxyModel, RequestModel)
+# app.use express.json()
+# app.use express.urlencoded()
+# app.use express.errorHandler()
+app.use "/assets", express.static(__dirname + "/assets")
 
 app.engine "html", require("ejs").renderFile
 
@@ -117,6 +67,10 @@ app.get "/proxy/:id", (req, res) ->
     where:
       proxy_id: req.params.id
   ).success (results) ->
+    results = results.map (result) ->
+      result.time_ago = moment(result.created_at).fromNow()
+      result
+
     res.render "proxy.html",
       requests: results
 
@@ -144,22 +98,29 @@ app.get "/response_body/:id", (req, res) ->
 
 module.exports =
   app:           app
-  proxy_app:     proxy_app
   proxy_model:   ProxyModel
   request_model: RequestModel
   database_conn: dbSystem
 
-unless module.parent
-  server = app.listen 80, ->
+
+startDashboard = ->
+  server = app.listen 3001, ->
     console.log "Listening on port %d", server.address().port
 
-  # proxy_server = proxy_app.listen 80, ->
-  # prconsole.log "Proxy listening on port %d", proxy_server.address().port
+    #   startProxyContainer = (proxy) ->
+    #     vhost = "#{proxy.secure_id}.edmodo.io"
+    #     containerName = "proxyboard-#{proxy.secure_id}"
+    #     docker.getContainer(containerName).stop (err, data) ->
+    #       console.log(err) if err
+    # 
+    #       docker.getContainer(containerName).remove (err, data) ->
+    #         console.log(err) if err
+    # 
+    #         docker.run 'registry.edmodo.io/proxy-board', ['coffee', 'app.coffee'], null, {Env: "VIRTUAL_HOST=#{vhost}", Links:["mysql:mysql"], name: containerName}, (err, data, container) ->
+    #           console.log err
+    #         .on 'container', (container) ->
+    #           container.defaultOptions.start.Links = ["mysql:mysql"]
 
 
-# io = require('socket.io').listen(server)
-# 
-# io.sockets.on 'connection', (socket) ->
-#   socket.emit 'news', hello: 'world'
-#   socket.on 'my other event', (data) ->
-#     console.log data
+unless module.parent
+  startDashboard()

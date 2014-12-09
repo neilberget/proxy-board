@@ -45,7 +45,7 @@
         <span class="response-status label <%= label %>"><%= request.response_status %></span>
         <span class="text-info"><%= request.request_time_ms %>ms</span>
         <span class="text-success"><%= request.response_length_bytes %> bytes</span>
-        <span class="text-muted pull-right"><%= request.created_at %></span>
+        <span class="text-muted pull-right"><%= request.time_ago %></span>
     </li>
   <% }); %>
   </ul>

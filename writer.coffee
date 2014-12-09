@@ -9,17 +9,8 @@ module.exports = (model) ->
   post: (transaction, res, next) ->
     @end = new Date().getTime()
 
-    console.log transaction.res.headers
-    if transaction.res.headers?['content-encoding'] == 'gzip'
-      console.log "unzip!!!!"
-      res_body = zlib.inflate(transaction.res.body).toString('utf8')
-    else
-      res_body = transaction.res.body
-    console.log res_body
+    res_body = transaction.res.body
 
-
-    # TODO: if response header
-    # save request details
     request_data =
       proxy_id: transaction.proxy_id
       method: transaction.req.method
@@ -31,7 +22,6 @@ module.exports = (model) ->
       response_body: res_body
       request_time_ms: @end - @start
       response_length_bytes: res_body.length
-    console.log request_data
 
     model.create(request_data).success( ->
       console.log "Request successfully captured"
